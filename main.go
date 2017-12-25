@@ -95,6 +95,18 @@ func (pow *ProofOfWork) Run() (nonce int, hash []byte) {
 	return
 }
 
+// Validate proof of work hash
+func (pow *ProofOfWork) Validate() bool {
+	var hashInt big.Int
+
+	mergedData := pow.prepareHash(pow.block.nonce)
+	hash32 := sha256.Sum256(mergedData)
+
+	hashInt.SetBytes(hash32[:])
+
+	return hashInt.Cmp(pow.target) == -1
+}
+
 // NewBlock create block object
 func NewBlock(data []byte, previousHash []byte) *Block {
 
@@ -134,7 +146,7 @@ func (bc *BlockChain) addBlock(data string) {
 func main() {
 	bc := NewBlockChain()
 
-	for i := 0; i < 1000000; i++ {
+	for i := 0; i < 3; i++ {
 		if i%100 == 0 {
 			difficulty++
 		}
@@ -147,5 +159,8 @@ func main() {
 		fmt.Printf("time    : %x\n", b.Timestamp)
 		fmt.Printf("Prehash : %x\n", b.PreviousHash)
 		fmt.Printf("Data    : %s\n", b.Data)
+
+		pow := NewProofOfWork(b)
+		fmt.Printf("Pass    : %v\n", pow.Validate())
 	}
 }
